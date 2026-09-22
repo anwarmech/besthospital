@@ -4,128 +4,145 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Best Hospital - ICU Daily Roster</title>
+<title>ICU Roster Generator</title>
+
 <style>
-*{box-sizing:border-box}
+*{
+  box-sizing:border-box;
+}
+
 body{
-  margin:0;padding:12px;background:#f1f5f9;
-  font-family:Arial,Helvetica,sans-serif;color:#0f172a;
+  margin:0;
+  font-family:Arial,sans-serif;
+  background:#f2f5f9;
+  color:#173f7a;
 }
-.container{max-width:520px;margin:auto}
-.card{
-  background:#fff;border-radius:14px;padding:16px;margin-bottom:14px;
-  box-shadow:0 2px 10px rgba(0,0,0,.08)
+
+.container{
+  max-width:900px;
+  margin:auto;
+  padding:20px;
 }
-h2,h3{margin:4px 0 14px;text-align:center}
-.form-group{margin-bottom:12px}
-label{display:block;font-size:13px;font-weight:700;margin-bottom:5px;color:#475569}
-input,select{
-  width:100%;padding:10px;border:1px solid #cbd5e1;border-radius:7px;
-  font-size:14px;background:#fff
+
+h1{
+  text-align:center;
+  margin-bottom:20px;
 }
+
+.controls{
+  background:white;
+  padding:20px;
+  border-radius:12px;
+  box-shadow:0 2px 10px rgba(0,0,0,.08);
+  margin-bottom:20px;
+}
+
+.row{
+  display:flex;
+  flex-wrap:wrap;
+  gap:12px;
+  margin-bottom:12px;
+  align-items:center;
+}
+
+label{
+  font-weight:700;
+}
+
+input,select,button{
+  padding:9px 12px;
+  border:1px solid #ccc;
+  border-radius:6px;
+  font-size:15px;
+}
+
+button{
+  background:#173f7a;
+  color:white;
+  border:none;
+  cursor:pointer;
+}
+
+button:hover{
+  opacity:.9;
+}
+
 .staff-row{
-  display:flex;align-items:center;justify-content:space-between;
-  gap:10px;padding:9px 0;border-bottom:1px solid #eef2f7
+  display:grid;
+  grid-template-columns:150px 1fr;
+  gap:10px;
+  align-items:center;
+  margin-bottom:8px;
 }
-.staff-name{font-weight:700;font-size:14px;flex:1}
-.staff-select{width:58%}
-.btn{
-  width:100%;border:0;border-radius:8px;padding:12px;margin-top:9px;
-  font-size:15px;font-weight:700;cursor:pointer
-}
-.primary{background:#0284c7;color:#fff}
-.success{background:#16a34a;color:#fff}
-.danger{background:#dc2626;color:#fff}
-.status{text-align:center;font-size:12px;font-weight:700;min-height:18px;margin-top:8px}
-.history-wrap{overflow-x:auto}
-table{width:100%;border-collapse:collapse;font-size:12px;text-align:center}
-th,td{padding:7px 4px;border-bottom:1px solid #e2e8f0;white-space:nowrap}
-th{background:#f1f5f9}
-.done{color:#16a34a;font-weight:700}
-.pending{color:#0284c7}
-#generatedBox{display:none;text-align:center}
+
 #generatedImage{
-  width:100%;height:auto;display:block;
-  border-radius:4px;background:#fff
+  display:block;
+  width:100%;
+  max-width:1024px;
+  margin:20px auto;
+  border-radius:4px;
 }
-.note{font-size:11px;color:#64748b;text-align:center;line-height:1.4}
-.off, .leave, .shift-off, .shift-leave{
-  background:#dcfce7 !important;
-  color:#166534 !important;
+
+.history{
+  background:white;
+  padding:20px;
+  border-radius:12px;
+  box-shadow:0 2px 10px rgba(0,0,0,.08);
+  margin-top:20px;
 }
-option[value="OFF"], option[value="LEAVE"]{
-  background:#fff;
-  color:#0f172a;
+
+.history-item{
+  padding:10px;
+  border-bottom:1px solid #ddd;
+}
+
+.history-item:last-child{
+  border-bottom:none;
+}
+
+@media(max-width:600px){
+  .staff-row{
+    grid-template-columns:1fr;
+  }
 }
 </style>
 </head>
 
 <body>
+
 <div class="container">
 
-<div class="card">
-  <h2>🏥 Best Hospital - ICU Shift Roster</h2>
-  <div class="note">
-    Select the date, patient count and shift for each staff member.
+<h1>ICU Roster Generator</h1>
+
+<div class="controls">
+
+  <div class="row">
+    <label for="date">Date:</label>
+    <input type="date" id="date">
   </div>
+
+  <div class="row">
+    <label for="patients">Patient Count:</label>
+    <input type="number" id="patients" min="0" value="0">
+  </div>
+
+  <h3>Staff Shift</h3>
+
+  <div id="staffContainer"></div>
+
+  <div class="row">
+    <button onclick="generateRoster()">Generate Roster</button>
+    <button onclick="downloadImage()">Download Image</button>
+    <button onclick="shareImage()">Share Image</button>
+  </div>
+
 </div>
 
-<div class="card">
-  <h3>📊 Staff Shift History</h3>
+<img id="generatedImage" alt="Generated ICU Roster">
 
-  <div class="history-wrap">
-    <table>
-      <thead>
-        <tr>
-          <th>Staff</th>
-          <th>Morning</th>
-          <th>Evening</th>
-          <th>Night</th>
-          <th>OFF</th>
-        </tr>
-      </thead>
-      <tbody id="historyBody"></tbody>
-    </table>
-  </div>
-
-  <button class="btn danger" onclick="resetHistory()">
-    🗑️ Reset All History
-  </button>
-</div>
-
-<div class="card">
-  <h3>👩‍⚕️ Assign Staff</h3>
-
-  <div class="form-group">
-    <label for="rosterDate">📅 Schedule Date</label>
-    <input type="date" id="rosterDate">
-  </div>
-
-  <div class="form-group">
-    <label for="patientCount">🏥 Total Patient Count</label>
-    <input type="number" id="patientCount" min="0" value="4">
-  </div>
-
-  <div id="staffList"></div>
-
-  <button class="btn primary" onclick="generateRoster()">
-    📋 Generate WhatsApp Post
-  </button>
-
-  <button class="btn success" onclick="downloadImage()">
-    📸 Download Image
-  </button>
-
-  <button class="btn success" onclick="shareImage()">
-    📲 Share Image
-  </button>
-
-  <div id="status" class="status"></div>
-</div>
-
-<div class="card" id="generatedBox">
-  <h3>Generated Post</h3>
-  <img id="generatedImage" alt="Generated ICU Daily Duty Roster">
+<div class="history">
+  <h2>Roster History</h2>
+  <div id="historyList"></div>
 </div>
 
 </div>
@@ -141,382 +158,302 @@ const STAFF = [
   "Akbar Basha"
 ];
 
-const TARGETS = {
-  M:8,
-  E:8,
-  N:8,
-  OFF:6
-};
+const SHIFT_OPTIONS = [
+  {
+    value:"M",
+    label:"Morning (8 AM - 4 PM)"
+  },
+  {
+    value:"E",
+    label:"Evening (12 PM - 8 PM)"
+  },
+  {
+    value:"N",
+    label:"Night (8 PM - 8 AM)"
+  },
+  {
+    value:"OFF",
+    label:"OFF / Leave"
+  }
+];
 
-const HISTORY_KEY = "best_hospital_icu_history";
-const ROSTER_KEY = "best_hospital_icu_rosters";
-
-/*
-  IMPORTANT:
-  image.jpg must be in the SAME folder as this HTML file.
-*/
-const TEMPLATE = "./image.jpg";
-
-let history =
-  JSON.parse(localStorage.getItem(HISTORY_KEY) || "null")
-  || emptyHistory();
-
-let rosters =
-  JSON.parse(localStorage.getItem(ROSTER_KEY) || "null")
-  || {};
-
-function emptyHistory(){
-
-  const h={};
-
-  STAFF.forEach(n=>{
-    h[n]={
-      M:0,
-      E:0,
-      N:0,
-      OFF:0
-    };
-  });
-
-  return h;
-}
-
-function tomorrowISO(){
-
-  const d=new Date();
-
-  d.setDate(d.getDate()+1);
-
-  const y=d.getFullYear();
-
-  const m=String(d.getMonth()+1).padStart(2,"0");
-
-  const day=String(d.getDate()).padStart(2,"0");
-
-  return `${y}-${m}-${day}`;
-}
-
-document.getElementById("rosterDate").value=tomorrowISO();
+let currentImage = null;
 
 
-function renderStaff(){
+/* =========================
+   INITIALIZE STAFF DROPDOWNS
+   ========================= */
 
-  const box=document.getElementById("staffList");
+function initializeStaff(){
 
-  box.innerHTML="";
+  const container =
+    document.getElementById("staffContainer");
 
-  STAFF.forEach((name,i)=>{
+  container.innerHTML = "";
 
-    const row=document.createElement("div");
+  STAFF.forEach((name,index)=>{
+
+    const row =
+      document.createElement("div");
 
     row.className="staff-row";
 
-    row.innerHTML=`
-      <div class="staff-name">
-        ${escapeHtml(name)}
-      </div>
+    const label =
+      document.createElement("label");
 
-      <select class="staff-select" id="s${i}">
+    label.textContent=name;
 
-        <option value="M">
-          Morning (8 AM - 4 PM)
-        </option>
+    const select =
+      document.createElement("select");
 
-        <option value="E">
-          Evening (12 PM - 8 PM)
-        </option>
+    select.id="staff_"+index;
 
-        <option value="N">
-          Night (8 PM - 8 AM)
-        </option>
+    SHIFT_OPTIONS.forEach(option=>{
 
-        <option value="OFF">
-          OFF / Leave
-        </option>
+      const opt =
+        document.createElement("option");
 
-      </select>
-    `;
+      opt.value=option.value;
+      opt.textContent=option.label;
 
-    box.appendChild(row);
-
-  });
-}
-
-
-function renderHistory(){
-
-  const body=document.getElementById("historyBody");
-
-  body.innerHTML="";
-
-  STAFF.forEach(name=>{
-
-    const d=history[name] || {
-      M:0,
-      E:0,
-      N:0,
-      OFF:0
-    };
-
-    const tr=document.createElement("tr");
-
-    tr.innerHTML=`
-      <td>
-        <b>${escapeHtml(name)}</b>
-      </td>
-
-      <td>
-        <span class="done">${d.M}</span>
-      </td>
-
-      <td>
-        <span class="done">${d.E}</span>
-      </td>
-
-      <td>
-        <span class="done">${d.N}</span>
-      </td>
-
-      <td>
-        <span class="done">${d.OFF}</span>
-      </td>
-    `;
-
-    body.appendChild(tr);
-
-  });
-}
-
-
-function assignment(){
-
-  const a={};
-
-  STAFF.forEach((name,i)=>{
-    a[name]=document.getElementById("s"+i).value;
-  });
-
-  return a;
-}
-
-
-function save(){
-
-  localStorage.setItem(
-    HISTORY_KEY,
-    JSON.stringify(history)
-  );
-
-  localStorage.setItem(
-    ROSTER_KEY,
-    JSON.stringify(rosters)
-  );
-}
-
-
-function loadDate(){
-
-  const date=
-    document.getElementById("rosterDate").value;
-
-  const old=rosters[date];
-
-  if(!old){
-
-    setStatus(
-      "New roster date",
-      "#0284c7"
-    );
-
-    return;
-  }
-
-  STAFF.forEach((name,i)=>{
-
-    document.getElementById("s"+i).value=
-      old.assignment[name] || "M";
-
-  });
-
-  document.getElementById("patientCount").value=
-    old.patientCount;
-
-  setStatus(
-    "Existing roster loaded.",
-    "#16a34a"
-  );
-}
-
-
-document
-  .getElementById("rosterDate")
-  .addEventListener("change",loadDate);
-
-
-/*
-  Generate roster
-*/
-async function generateRoster(){
-
-  const date=
-    document.getElementById("rosterDate").value;
-
-  const patients=
-    document.getElementById("patientCount").value;
-
-  if(!date){
-
-    alert("Please select a date.");
-
-    return;
-  }
-
-  if(
-    patients==="" ||
-    Number(patients)<0
-  ){
-
-    alert("Enter a valid patient count.");
-
-    return;
-  }
-
-  const a=assignment();
-
-
-  /*
-    Remove previous history for this date
-    before replacing it.
-  */
-  if(rosters[date]){
-
-    const old=
-      rosters[date].assignment || {};
-
-    STAFF.forEach(name=>{
-
-      const sh=old[name];
-
-      if(
-        history[name] &&
-        history[name][sh]>0
-      ){
-
-        history[name][sh]--;
-      }
+      select.appendChild(opt);
 
     });
+
+    /*
+      Default assignment.
+      You can change these if required.
+    */
+
+    if(index === 0){
+      select.value="M";
+    }
+    else if(index === 1){
+      select.value="E";
+    }
+    else if(index === 2){
+      select.value="N";
+    }
+    else{
+      select.value="OFF";
+    }
+
+    row.appendChild(label);
+    row.appendChild(select);
+
+    container.appendChild(row);
+
+  });
+
+}
+
+
+/* =========================
+   DATE FORMAT
+   ========================= */
+
+function formatDate(dateString){
+
+  const date =
+    new Date(dateString + "T00:00:00");
+
+  const day =
+    String(date.getDate()).padStart(2,"0");
+
+  const month =
+    String(date.getMonth()+1).padStart(2,"0");
+
+  const year =
+    date.getFullYear();
+
+  return `${day}/${month}/${year}`;
+
+}
+
+
+/* =========================
+   DRAW NORMAL TEXT
+   ========================= */
+
+function drawText(
+  ctx,
+  text,
+  x,
+  y,
+  size,
+  weight="400",
+  color="#173f7a"
+){
+
+  ctx.font =
+    `${weight} ${size}px Arial`;
+
+  ctx.fillStyle=color;
+  ctx.textBaseline="middle";
+
+  ctx.fillText(
+    text,
+    x,
+    y
+  );
+
+}
+
+
+/* =========================
+   DRAW STAFF NAMES
+   ONLY MAHAPRIYA IS BOLD
+   ========================= */
+
+function drawNames(
+  ctx,
+  text,
+  x,
+  y
+){
+
+  const names =
+    text.split(",").map(
+      name=>name.trim()
+    ).filter(Boolean);
+
+  if(names.length===0){
+    return;
   }
 
+  ctx.textBaseline="middle";
+  ctx.fillStyle="#173f7a";
 
-  STAFF.forEach(name=>{
+  let currentX=x;
 
-    if(!history[name]){
+  names.forEach((name,index)=>{
 
-      history[name]={
-        M:0,
-        E:0,
-        N:0,
-        OFF:0
-      };
+    /*
+      Only Mahapriya is bold.
+      The * is immediately after Mahapriya.
+    */
+
+    if(name === "Mahapriya"){
+
+      ctx.font="700 28px Arial";
+
+      ctx.fillText(
+        "Mahapriya",
+        currentX,
+        y
+      );
+
+      currentX +=
+        ctx.measureText("Mahapriya").width;
+
+      ctx.font="400 28px Arial";
+
+      ctx.fillText(
+        "*",
+        currentX,
+        y
+      );
+
+      currentX +=
+        ctx.measureText("*").width;
+
+    }
+    else{
+
+      ctx.font="400 28px Arial";
+
+      ctx.fillText(
+        name,
+        currentX,
+        y
+      );
+
+      currentX +=
+        ctx.measureText(name).width;
 
     }
 
-    history[name][a[name]]++;
+    /*
+      Add comma and space between names.
+    */
+
+    if(index < names.length-1){
+
+      ctx.font="400 28px Arial";
+
+      ctx.fillText(
+        ", ",
+        currentX,
+        y
+      );
+
+      currentX +=
+        ctx.measureText(", ").width;
+
+    }
 
   });
 
-
-  rosters[date]={
-    patientCount:Number(patients),
-    assignment:a
-  };
-
-  save();
-
-  renderHistory();
-
-
-  try{
-
-    const data=
-      await createImage(
-        date,
-        Number(patients),
-        a
-      );
-
-    document.getElementById(
-      "generatedImage"
-    ).src=data;
-
-    document.getElementById(
-      "generatedBox"
-    ).style.display="block";
-
-    setStatus(
-      "Roster image generated successfully.",
-      "#16a34a"
-    );
-
-  }catch(error){
-
-    console.error(error);
-
-    setStatus(
-      "Could not load image.jpg. Check that image.jpg is in the same folder.",
-      "#dc2626"
-    );
-
-    alert(
-      "Could not load image.jpg.\n\n" +
-      "Make sure the file is named exactly:\n" +
-      "image.jpg\n\n" +
-      "and is in the same GitHub folder as this HTML file."
-    );
-
-  }
 }
 
 
-/*
-  CREATE IMAGE
+/* =========================
+   CREATE IMAGE
+   ========================= */
 
-  The source image is now:
-      ./image.jpg
+async function createImage(
+  date,
+  patients,
+  assignments
+){
 
-  It is loaded using onload rather than img.decode()
-  for better compatibility with GitHub Pages.
-*/
-async function createImage(date,patients,a){
+  const img =
+    new Image();
 
-  const img=new Image();
+  /*
+    Load the ORIGINAL image.jpg.
+    Nothing is recreated or modified.
+  */
 
-  await new Promise((resolve,reject)=>{
+  await new Promise(
+    (resolve,reject)=>{
 
-    img.onload=resolve;
+      img.onload=resolve;
 
-    img.onerror=()=>{
+      img.onerror=()=>{
+        reject(
+          new Error(
+            "Could not load image.jpg. Make sure image.jpg is in the same folder as this HTML file."
+          )
+        );
+      };
 
-      reject(
-        new Error(
-          "Could not load image.jpg"
-        )
-      );
+      img.src="./image.jpg";
 
-    };
-
-    img.src=TEMPLATE;
-
-  });
+    }
+  );
 
 
-  const c=document.createElement("canvas");
+  const canvas =
+    document.createElement("canvas");
 
-  c.width=1024;
-  c.height=1536;
+  canvas.width=1024;
+  canvas.height=1536;
 
-  const ctx=c.getContext("2d");
+  const ctx =
+    canvas.getContext("2d");
+
+
+  /*
+    IMPORTANT:
+    Draw the original image exactly as supplied.
+
+    No green card.
+    No Staff Incharge.
+    No extra graphics.
+    No background recreation.
+    No color modification.
+  */
 
   ctx.drawImage(
     img,
@@ -527,9 +464,6 @@ async function createImage(date,patients,a){
   );
 
 
-  drawOffLeaveCard(ctx);
-
-
   const shifts={
     M:[],
     E:[],
@@ -538,18 +472,31 @@ async function createImage(date,patients,a){
   };
 
 
-  STAFF.forEach(n=>{
-    shifts[a[n]].push(n);
+  STAFF.forEach(name=>{
+
+    const shift =
+      assignments[name];
+
+    if(shifts[shift]){
+      shifts[shift].push(name);
+    }
+
   });
 
 
-  const formatted=
+  /*
+    ONLY dynamic text is added below.
+  */
+
+  const formattedDate =
     formatDate(date);
 
 
+  /* Date */
+
   drawText(
     ctx,
-    formatted,
+    formattedDate,
     168,
     490,
     34,
@@ -557,6 +504,8 @@ async function createImage(date,patients,a){
     "#173f7a"
   );
 
+
+  /* Patient count */
 
   drawText(
     ctx,
@@ -569,6 +518,8 @@ async function createImage(date,patients,a){
   );
 
 
+  /* Morning */
+
   drawNames(
     ctx,
     shifts.M.join(", ") || "None",
@@ -576,6 +527,8 @@ async function createImage(date,patients,a){
     700
   );
 
+
+  /* Evening */
 
   drawNames(
     ctx,
@@ -585,6 +538,8 @@ async function createImage(date,patients,a){
   );
 
 
+  /* Night */
+
   drawNames(
     ctx,
     shifts.N.join(", ") || "None",
@@ -592,6 +547,8 @@ async function createImage(date,patients,a){
     1117
   );
 
+
+  /* OFF / Leave */
 
   drawNames(
     ctx,
@@ -601,765 +558,153 @@ async function createImage(date,patients,a){
   );
 
 
-  drawText(
-    ctx,
-    "* Staff Incharge",
-    39,
-    1371,
-    18,
-    "700",
-    "#173f7a"
+  return canvas.toDataURL(
+    "image/png"
   );
 
-
-  return c.toDataURL("image/png");
 }
 
 
-function roundRect(
-  ctx,
-  x,
-  y,
-  w,
-  h,
-  r,
-  fill,
-  stroke=null,
-  lineWidth=1
-){
-
-  ctx.beginPath();
-
-  ctx.moveTo(x+r,y);
-
-  ctx.arcTo(
-    x+w,
-    y,
-    x+w,
-    y+h,
-    r
-  );
-
-  ctx.arcTo(
-    x+w,
-    y+h,
-    x,
-    y+h,
-    r
-  );
-
-  ctx.arcTo(
-    x,
-    y+h,
-    x,
-    y,
-    r
-  );
-
-  ctx.arcTo(
-    x,
-    y,
-    x+w,
-    y,
-    r
-  );
-
-  ctx.closePath();
-
-
-  if(fill){
-
-    ctx.fillStyle=fill;
-
-    ctx.fill();
-
-  }
-
-
-  if(stroke){
-
-    ctx.strokeStyle=stroke;
-
-    ctx.lineWidth=lineWidth;
-
-    ctx.stroke();
-
-  }
-}
-
-
-function drawOffLeaveCard(ctx){
-
-  const x=39;
-  const y=1184;
-  const w=945;
-  const h=164;
-  const r=25;
-  const headerH=76;
-
-  const body='#dff4e8';
-  const header='#b6e6c9';
-  const border='#62bf8d';
-  const logo='#68cd97';
-  const badge='#4fba7e';
-
-
-  roundRect(
-    ctx,
-    x,
-    y,
-    w,
-    h,
-    r,
-    body,
-    border,
-    3
-  );
-
-
-  ctx.save();
-
-  ctx.beginPath();
-
-  ctx.moveTo(
-    x+r,
-    y
-  );
-
-  ctx.lineTo(
-    x+w-r,
-    y
-  );
-
-  ctx.quadraticCurveTo(
-    x+w,
-    y,
-    x+w,
-    y+r
-  );
-
-  ctx.lineTo(
-    x+w,
-    y+headerH
-  );
-
-  ctx.lineTo(
-    x,
-    y+headerH
-  );
-
-  ctx.lineTo(
-    x,
-    y+r
-  );
-
-  ctx.quadraticCurveTo(
-    x,
-    y,
-    x+r,
-    y
-  );
-
-  ctx.closePath();
-
-  ctx.fillStyle=header;
-
-  ctx.fill();
-
-  ctx.restore();
-
-
-  ctx.strokeStyle='#b8e1ca';
-
-  ctx.lineWidth=2;
-
-  ctx.beginPath();
-
-  ctx.moveTo(
-    x,
-    y+headerH
-  );
-
-  ctx.lineTo(
-    x+w,
-    y+headerH
-  );
-
-  ctx.stroke();
-
-
-  roundRect(
-    ctx,
-    x,
-    y,
-    w,
-    h,
-    r,
-    null,
-    border,
-    3
-  );
-
-
-  /*
-    Circular sleeping logo
-  */
-
-  const cx=110;
-  const cy=1230;
-  const rad=53;
-
-  ctx.beginPath();
-
-  ctx.arc(
-    cx,
-    cy,
-    rad,
-    0,
-    Math.PI*2
-  );
-
-  ctx.fillStyle=logo;
-
-  ctx.fill();
-
-
-  ctx.lineWidth=5;
-
-  ctx.strokeStyle='#effff6';
-
-  ctx.stroke();
-
-
-  ctx.strokeStyle='#fff';
-  ctx.fillStyle='#fff';
-  ctx.lineWidth=6;
-  ctx.lineCap='round';
-
-
-  ctx.beginPath();
-
-  ctx.moveTo(80,1260);
-  ctx.lineTo(80,1221);
-
-  ctx.moveTo(80,1258);
-  ctx.lineTo(138,1258);
-
-  ctx.moveTo(84,1242);
-  ctx.lineTo(138,1242);
-
-  ctx.stroke();
-
-
-  roundRect(
-    ctx,
-    91,
-    1230,
-    21,
-    12,
-    3,
-    '#fff'
-  );
-
-
-  ctx.lineWidth=6;
-
-  ctx.beginPath();
-
-  ctx.moveTo(134,1242);
-  ctx.lineTo(134,1260);
-
-  ctx.stroke();
-
-
-  ctx.font='700 16px Arial';
-
-  ctx.fillText(
-    'Z',
-    124,
-    1220
-  );
-
-
-  ctx.font='700 11px Arial';
-
-  ctx.fillText(
-    'Z',
-    139,
-    1210
-  );
-
-
-  drawText(
-    ctx,
-    'Off / Leave',
-    184,
-    1238,
-    34,
-    '700',
-    '#173f7a'
-  );
-
-
-  roundRect(
-    ctx,
-    674,
-    1200,
-    290,
-    51,
-    26,
-    badge
-  );
-
-
-  ctx.font='700 23px Arial';
-
-  ctx.fillStyle='#fff';
-
-  ctx.textAlign='center';
-
-  ctx.textBaseline='middle';
-
-  ctx.fillText(
-    'OFF / LEAVE',
-    819,
-    1226
-  );
-
-
-  ctx.textAlign='left';
-
-  ctx.textBaseline='alphabetic';
-
-
-  /*
-    Staff icon
-  */
-
-  ctx.fillStyle='#1868b9';
-
-  ctx.beginPath();
-
-  ctx.arc(
-    122,
-    1286,
-    8,
-    0,
-    Math.PI*2
-  );
-
-  ctx.arc(
-    106,
-    1288,
-    7,
-    0,
-    Math.PI*2
-  );
-
-  ctx.arc(
-    138,
-    1288,
-    7,
-    0,
-    Math.PI*2
-  );
-
-  ctx.fill();
-
-
-  roundRect(
-    ctx,
-    106,
-    1291,
-    32,
-    18,
-    7,
-    '#1868b9'
-  );
-
-
-  roundRect(
-    ctx,
-    92,
-    1294,
-    21,
-    15,
-    6,
-    '#1868b9'
-  );
-
-
-  roundRect(
-    ctx,
-    131,
-    1294,
-    21,
-    15,
-    6,
-    '#1868b9'
-  );
-
-
-  drawText(
-    ctx,
-    'Staff:',
-    184,
-    1304,
-    27,
-    '700',
-    '#173f7a'
-  );
-}
-
-
-function drawText(
-  ctx,
-  text,
-  x,
-  y,
-  size,
-  weight,
-  color
-){
-
-  ctx.font=
-    `${weight} ${size}px Arial, Helvetica, sans-serif`;
-
-  ctx.fillStyle=color;
-
-  ctx.textBaseline="alphabetic";
-
-  ctx.fillText(
-    text,
-    x,
-    y
-  );
-}
-
-
-function drawNames(
-  ctx,
-  text,
-  x,
-  y
-){
-
-  const names=
-    text
-      .split(/,\s*/)
-      .filter(Boolean);
-
-
-  let size=31;
-
-  const maxWidth=650;
-
-
-  /*
-    Only Mahapriya is bold.
-    All other staff names are normal.
-  */
-
-  const displayNames=
-    names.map(
-      n=>n==="Mahapriya"
-        ? "Mahapriya*"
-        : n
-    );
-
-
-  function measureAt(fontSize){
-
-    let w=0;
-
-
-    displayNames.forEach((n,i)=>{
-
-      const special=
-        n==="Mahapriya*";
-
-
-      ctx.font=
-        `${special?700:400} ${fontSize}px Arial, Helvetica, sans-serif`;
-
-
-      w+=ctx.measureText(n).width;
-
-
-      if(i<displayNames.length-1){
-
-        ctx.font=
-          `400 ${fontSize}px Arial, Helvetica, sans-serif`;
-
-        w+=ctx.measureText(", ").width;
-
-      }
-
-    });
-
-
-    return w;
-  }
-
-
-  while(
-    measureAt(size)>maxWidth &&
-    size>20
-  ){
-
-    size--;
-
-  }
-
-
-  let cursor=x;
-
-
-  ctx.textBaseline="alphabetic";
-
-
-  displayNames.forEach((name,i)=>{
-
-    const special=
-      name==="Mahapriya*";
-
-
-    ctx.font=
-      `${special?700:400} ${size}px Arial, Helvetica, sans-serif`;
-
-    ctx.fillStyle="#173f7a";
-
-
-    if(special){
-
-      const main="Mahapriya";
-
-
-      ctx.fillText(
-        main,
-        cursor,
-        y
-      );
-
-
-      cursor+=
-        ctx.measureText(main).width;
-
-
-      const starSize=
-        Math.max(
-          18,
-          Math.round(size*0.68)
-        );
-
-
-      ctx.font=
-        `700 ${starSize}px Arial, Helvetica, sans-serif`;
-
-
-      ctx.fillText(
-        "*",
-        cursor,
-        y-2
-      );
-
-
-      cursor+=
-        ctx.measureText("*").width;
-
-
-    }else{
-
-      ctx.fillText(
-        name,
-        cursor,
-        y
-      );
-
-
-      cursor+=
-        ctx.measureText(name).width;
-
-    }
-
-
-    if(i<displayNames.length-1){
-
-      ctx.font=
-        `400 ${size}px Arial, Helvetica, sans-serif`;
-
-
-      ctx.fillText(
-        ", ",
-        cursor,
-        y
-      );
-
-
-      cursor+=
-        ctx.measureText(", ").width;
-
-    }
-
-  });
-}
-
-
-function formatDate(iso){
-
-  const d=
-    new Date(
-      iso+"T00:00:00"
-    );
-
-
-  const months=[
-    "Jan",
-    "Feb",
-    "Mar",
-    "Apr",
-    "May",
-    "Jun",
-    "Jul",
-    "Aug",
-    "Sep",
-    "Oct",
-    "Nov",
-    "Dec"
-  ];
-
-
-  return `${
-    String(d.getDate()).padStart(2,"0")
-  } ${
-    months[d.getMonth()]
-  } ${
-    d.getFullYear()
-  }`;
-}
-
-
-async function downloadImage(){
-
-  const date=
-    document.getElementById(
-      "rosterDate"
-    ).value;
-
-
-  if(!date){
-
-    alert(
-      "Generate a roster first."
-    );
-
-    return;
-  }
-
-
-  const a=assignment();
-
-
-  const patients=
-    Number(
-      document.getElementById(
-        "patientCount"
-      ).value
-    );
-
+/* =========================
+   GENERATE ROSTER
+   ========================= */
+
+async function generateRoster(){
 
   try{
 
-    const data=
-      await createImage(
-        date,
-        patients,
-        a
-      );
+    const date =
+      document.getElementById("date").value;
+
+    const patients =
+      document.getElementById("patients").value;
+
+    if(!date){
+
+      alert("Please select a date.");
+      return;
+
+    }
 
 
-    const link=
-      document.createElement("a");
+    const assignments={};
 
+    STAFF.forEach(
+      (name,index)=>{
 
-    link.download=
-      `BestHospital_ICU_Roster_${date}.png`;
+        assignments[name] =
+          document.getElementById(
+            "staff_"+index
+          ).value;
 
-
-    link.href=data;
-
-
-    link.click();
-
-
-    setStatus(
-      "Image downloaded.",
-      "#16a34a"
+      }
     );
 
 
-  }catch(error){
+    currentImage =
+      await createImage(
+        date,
+        patients,
+        assignments
+      );
+
+
+    document.getElementById(
+      "generatedImage"
+    ).src=currentImage;
+
+
+    saveRoster(
+      date,
+      patients,
+      assignments
+    );
+
+
+    loadHistory();
+
+  }
+  catch(error){
 
     console.error(error);
 
-    alert(
-      "Could not load image.jpg. " +
-      "Make sure it is in the same folder as this HTML file."
-    );
+    alert(error.message);
 
   }
+
 }
 
 
-async function shareImage(){
+/* =========================
+   DOWNLOAD IMAGE
+   ========================= */
 
-  const date=
-    document.getElementById(
-      "rosterDate"
-    ).value;
+function downloadImage(){
 
-
-  if(!date){
+  if(!currentImage){
 
     alert(
-      "Generate a roster first."
+      "Please generate the roster first."
     );
 
     return;
+
   }
 
 
-  const a=assignment();
+  const date =
+    document.getElementById("date").value ||
+    "roster";
 
 
-  const patients=
-    Number(
-      document.getElementById(
-        "patientCount"
-      ).value
+  const link =
+    document.createElement("a");
+
+  link.download =
+    `ICU_Roster_${date}.png`;
+
+  link.href=currentImage;
+
+  link.click();
+
+}
+
+
+/* =========================
+   SHARE IMAGE
+   ========================= */
+
+async function shareImage(){
+
+  if(!currentImage){
+
+    alert(
+      "Please generate the roster first."
     );
+
+    return;
+
+  }
 
 
   try{
 
-    const data=
-      await createImage(
-        date,
-        patients,
-        a
-      );
+    const response =
+      await fetch(currentImage);
+
+    const blob =
+      await response.blob();
 
 
-    const blob=
-      await (
-        await fetch(data)
-      ).blob();
+    const date =
+      document.getElementById("date").value ||
+      "roster";
 
 
-    const file=
+    const file =
       new File(
         [blob],
-        `BestHospital_ICU_Roster_${date}.png`,
+        `ICU_Roster_${date}.png`,
         {
           type:"image/png"
         }
@@ -1368,158 +713,223 @@ async function shareImage(){
 
     if(
       navigator.share &&
-      (
-        !navigator.canShare ||
-        navigator.canShare({
-          files:[file]
-        })
-      )
+      navigator.canShare &&
+      navigator.canShare({files:[file]})
     ){
 
-      try{
+      await navigator.share({
+        title:"ICU Roster",
+        files:[file]
+      });
 
-        await navigator.share({
+    }
+    else{
 
-          title:
-            "ICU Daily Duty Roster",
-
-          text:
-            `ICU Daily Duty Roster - ${formatDate(date)}`,
-
-          files:[file]
-
-        });
-
-
-        setStatus(
-          "Share menu opened.",
-          "#16a34a"
-        );
-
-        return;
-
-      }catch(e){}
+      alert(
+        "Image sharing is not supported in this browser. Please use Download Image."
+      );
 
     }
 
-
-    /*
-      Fallback
-    */
-
-    const link=
-      document.createElement("a");
-
-
-    link.download=file.name;
-
-    link.href=data;
-
-    link.click();
-
-
-    alert(
-      "Direct image sharing is not supported " +
-      "by this browser. The image has been downloaded; " +
-      "attach it in WhatsApp."
-    );
-
-
-  }catch(error){
+  }
+  catch(error){
 
     console.error(error);
 
-    alert(
-      "Could not load image.jpg. " +
-      "Make sure it is in the same folder as this HTML file."
-    );
-
   }
+
 }
 
 
-function resetHistory(){
+/* =========================
+   SAVE ROSTER
+   ========================= */
 
-  if(
-    !confirm(
-      "Reset ALL staff history and saved rosters?"
-    )
-  ){
-
-    return;
-  }
-
-
-  history=emptyHistory();
-
-  rosters={};
-
-
-  localStorage.removeItem(
-    HISTORY_KEY
-  );
-
-
-  localStorage.removeItem(
-    ROSTER_KEY
-  );
-
-
-  renderHistory();
-
-
-  setStatus(
-    "History reset.",
-    "#dc2626"
-  );
-}
-
-
-function setStatus(
-  text,
-  color
+function saveRoster(
+  date,
+  patients,
+  assignments
 ){
 
-  const s=
-    document.getElementById(
-      "status"
+  const history =
+    JSON.parse(
+      localStorage.getItem(
+        "icuRosterHistory"
+      ) || "[]"
     );
 
 
-  s.textContent=text;
+  const existingIndex =
+    history.findIndex(
+      item=>item.date===date
+    );
 
-  s.style.color=color;
-}
+
+  const record={
+    date,
+    patients,
+    assignments
+  };
 
 
-function escapeHtml(s){
+  if(existingIndex>=0){
 
-  return String(s).replace(
-    /[&<>"']/g,
-    m=>({
+    history[existingIndex]=record;
 
-      "&":"&amp;",
-      "<":"&lt;",
-      ">":"&gt;",
-      '"':"&quot;",
-      "'":"&#039;"
+  }
+  else{
 
-    }[m])
+    history.push(record);
+
+  }
+
+
+  localStorage.setItem(
+    "icuRosterHistory",
+    JSON.stringify(history)
   );
+
 }
 
 
-/*
-  Initialize
-*/
+/* =========================
+   LOAD HISTORY
+   ========================= */
 
-renderStaff();
+function loadHistory(){
 
-renderHistory();
+  const history =
+    JSON.parse(
+      localStorage.getItem(
+        "icuRosterHistory"
+      ) || "[]"
+    );
 
-loadDate();
+
+  const container =
+    document.getElementById(
+      "historyList"
+    );
+
+
+  container.innerHTML="";
+
+
+  if(history.length===0){
+
+    container.innerHTML =
+      "<p>No roster history.</p>";
+
+    return;
+
+  }
+
+
+  history
+    .slice()
+    .reverse()
+    .forEach(record=>{
+
+      const div =
+        document.createElement("div");
+
+      div.className=
+        "history-item";
+
+
+      const formatted =
+        formatDate(record.date);
+
+
+      const assignments =
+        record.assignments;
+
+
+      const summary =
+        STAFF.map(
+          name=>
+            `${name}: ${
+              getShiftLabel(
+                assignments[name]
+              )
+            }`
+        ).join(" | ");
+
+
+      div.innerHTML=
+        `<strong>${formatted}</strong>
+         — Patients: ${record.patients}
+         <br>
+         ${summary}`;
+
+
+      container.appendChild(div);
+
+    });
+
+}
+
+
+/* =========================
+   SHIFT LABEL
+   ========================= */
+
+function getShiftLabel(value){
+
+  const option =
+    SHIFT_OPTIONS.find(
+      item=>item.value===value
+    );
+
+  return option
+    ? option.label
+    : value;
+
+}
+
+
+/* =========================
+   INITIAL PAGE SETUP
+   ========================= */
+
+function setToday(){
+
+  const today =
+    new Date();
+
+
+  const year =
+    today.getFullYear();
+
+  const month =
+    String(
+      today.getMonth()+1
+    ).padStart(2,"0");
+
+  const day =
+    String(
+      today.getDate()
+    ).padStart(2,"0");
+
+
+  document.getElementById(
+    "date"
+  ).value =
+    `${year}-${month}-${day}`;
+
+}
+
+
+/* =========================
+   START
+   ========================= */
+
+initializeStaff();
+setToday();
+loadHistory();
 
 </script>
+
 </body>
 </html>
 ```
